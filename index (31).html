@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Black Pearl – Solent AR</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { overflow: hidden; background: #000; }
+
+      /* SPLASH */
+      #splash {
+        position: fixed; inset: 0; z-index: 9999;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: flex-end;
+        background: #000;
+      }
+      #splash img {
+        position: absolute; inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover; opacity: 0;
+        transition: opacity 0.8s ease;
+      }
+      #splash img.loaded { opacity: 1; }
+      #splash::after {
+        content: ''; position: absolute;
+        bottom: 0; left: 0; right: 0; height: 55%;
+        background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%);
+        z-index: 1; pointer-events: none;
+      }
+      #splash-content {
+        position: relative; z-index: 2;
+        text-align: center; padding: 0 24px 52px;
+      }
+      #splash-title {
+        font-family: Georgia, serif; font-size: 30px;
+        color: #fff; letter-spacing: 5px;
+        text-transform: uppercase;
+        text-shadow: 0 2px 24px rgba(0,0,0,0.95);
+        margin-bottom: 6px;
+      }
+      #splash-sub {
+        font-family: sans-serif; font-size: 12px;
+        color: rgba(255,255,255,0.65); letter-spacing: 3px;
+        text-transform: uppercase; margin-bottom: 36px;
+      }
+      #start-btn {
+        background: rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.45);
+        color: #fff; font-family: sans-serif; font-size: 13px;
+        letter-spacing: 2px; text-transform: uppercase;
+        padding: 15px 40px; border-radius: 30px; cursor: pointer;
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      }
+      #start-btn:active { background: rgba(255,255,255,0.15); }
+
+      /* TOO FAR SCREEN */
+      #too-far {
+        position: fixed; inset: 0; z-index: 8888;
+        display: none; flex-direction: column;
+        align-items: center; justify-content: center;
+        background: rgba(0,0,0,0.92); text-align: center;
+        padding: 32px;
+      }
+      #too-far .icon { font-size: 52px; margin-bottom: 16px; }
+      #too-far h2 {
+        font-family: Georgia, serif; color: #fff;
+        font-size: 22px; letter-spacing: 2px;
+        text-transform: uppercase; margin-bottom: 12px;
+      }
+      #too-far p {
+        font-family: sans-serif; color: rgba(255,255,255,0.7);
+        font-size: 14px; line-height: 1.6; max-width: 280px;
+        margin: 0 auto 24px;
+      }
+      #distance-display {
+        font-family: sans-serif; font-size: 28px;
+        font-weight: bold; color: #fff; margin-bottom: 6px;
+      }
+      #distance-label {
+        font-family: sans-serif; font-size: 12px;
+        color: rgba(255,255,255,0.5); letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      /* STATUS BAR */
+      #status {
+        position: fixed; bottom: 24px; left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.6); color: #fff;
+        padding: 8px 18px; border-radius: 20px;
+        font-family: sans-serif; font-size: 13px;
+        z-index: 999; pointer-events: none;
+        text-align: center; display: none; white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- SPLASH -->
+    <div id="splash">
+      <img id="splash-img" src="./black_pearl_preview.jpg" alt="Black Pearl on the Solent" />
+      <div id="splash-content">
+        <div id="splash-title">The Black Pearl</div>
+        <div id="splash-sub">Solent AR Experience</div>
+        <button id="start-btn">⚓ Find the Ship</button>
+      </div>
+    </div>
+
+    <!-- TOO FAR SCREEN -->
+    <div id="too-far">
+      <div class="icon">🏴‍☠️</div>
+      <h2>She's out there...</h2>
+      <p>Make your way to the Hot Walls, Old Portsmouth to find the Black Pearl anchored in the Solent.</p>
+      <div id="distance-display">--</div>
+      <div id="distance-label">metres away</div>
+    </div>
+
+    <!-- STATUS -->
+    <div id="status">🏴‍☠️ The Black Pearl is anchored ahead...</div>
+
+    <!-- AR SCENE -->
+    <a-scene
+      id="ar-scene"
+      vr-mode-ui="enabled: false"
+      arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
+      renderer="antialias: true; logarithmicDepthBuffer: true;"
+      embedded
+      style="display:none;"
+    >
+      <a-assets>
+        <a-asset-item id="ship" src="./black_pearl.glb"></a-asset-item>
+      </a-assets>
+
+      <a-camera gps-camera rotation-reader></a-camera>
+
+      <!-- Black Pearl at exact channel marker coordinates -->
+      <a-entity
+        id="ship-entity"
+        gps-entity-place="latitude: 50.7898149; longitude: -1.1082234;"
+        gltf-model="#ship"
+        rotation="0 180 0"
+        scale="12 12 12"
+        animation="property: rotation; to: 0 540 0; dur: 30000; loop: true; easing: linear"
+      ></a-entity>
+    </a-scene>
+
+    <script>
+      // --- CONFIG ---
+      const VIEWPOINT_LAT = 50.7902309;
+      const VIEWPOINT_LON = -1.1080698;
+      const TRIGGER_RADIUS = 20;  // metres — within this distance AR activates
+
+      // Haversine distance in metres
+      function distanceTo(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      }
+
+      let arStarted = false;
+
+      // Splash image fade in
+      const splashImg = document.getElementById('splash-img');
+      splashImg.addEventListener('load', () => splashImg.classList.add('loaded'));
+      if (splashImg.complete) splashImg.classList.add('loaded');
+
+      // Tap button — start location watch
+      document.getElementById('start-btn').addEventListener('click', () => {
+        const splash = document.getElementById('splash');
+        splash.style.transition = 'opacity 0.5s ease';
+        splash.style.opacity = '0';
+        setTimeout(() => {
+          splash.style.display = 'none';
+          startLocationWatch();
+        }, 500);
+      });
+
+      function launchAR() {
+        if (arStarted) return;
+        arStarted = true;
+        document.getElementById('too-far').style.display = 'none';
+        document.getElementById('ar-scene').style.display = 'block';
+        document.getElementById('status').style.display = 'block';
+        const scene = document.querySelector('a-scene');
+        const arSystem = scene.systems['mindar-image-system'];
+        if (arSystem) arSystem.start();
+      }
+
+      function startLocationWatch() {
+        if (!navigator.geolocation) {
+          document.getElementById('too-far').style.display = 'flex';
+          document.getElementById('too-far').querySelector('p').textContent =
+            'Location services are not available on this device.';
+          return;
+        }
+
+        // Show too-far screen while we get position
+        document.getElementById('too-far').style.display = 'flex';
+
+        navigator.geolocation.watchPosition(
+          (pos) => {
+            const dist = Math.round(distanceTo(
+              pos.coords.latitude, pos.coords.longitude,
+              VIEWPOINT_LAT, VIEWPOINT_LON
+            ));
+
+            document.getElementById('distance-display').textContent = dist;
+
+            if (dist <= TRIGGER_RADIUS) {
+              // Close enough — launch AR!
+              launchAR();
+            } else {
+              // Still too far — keep showing distance
+              if (!arStarted) {
+                document.getElementById('too-far').style.display = 'flex';
+              }
+            }
+          },
+          (err) => {
+            document.getElementById('too-far').querySelector('p').textContent =
+              'Please allow location access to find the Black Pearl.';
+          },
+          { enableHighAccuracy: true, maximumAge: 3000 }
+        );
+      }
+    </script>
+  </body>
+</html>
